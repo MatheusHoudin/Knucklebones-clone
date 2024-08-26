@@ -1,4 +1,4 @@
-package com.houdin.knucklebonesclone.ui.theme
+package com.houdin.knucklebonesclone.shared.theme
 
 import androidx.compose.ui.graphics.Color
 
