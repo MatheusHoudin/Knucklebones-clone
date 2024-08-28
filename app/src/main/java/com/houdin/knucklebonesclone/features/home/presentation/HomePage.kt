@@ -31,7 +31,9 @@ import com.houdin.knucklebonesclone.shared.components.button.KnuckleButtonSecond
 import com.houdin.knucklebonesclone.shared.theme.KnucklebonesCloneTheme
 
 @Composable
-fun HomePage() {
+fun HomePage(
+    startPlaying: () -> Unit
+) {
 
     val context = LocalContext.current
 
@@ -65,7 +67,7 @@ fun HomePage() {
         KnuckleButtonPrimary(
             "Play",
             modifier = Modifier.fillMaxWidth()
-        ) {}
+        ) { startPlaying() }
         Spacer(modifier = Modifier.height(16.dp))
         KnuckleButtonSecondary(
             "How to play?",
@@ -82,6 +84,6 @@ fun HomePage() {
 @Composable
 fun HomePagePreview() {
     KnucklebonesCloneTheme {
-        HomePage()
+        HomePage() {}
     }
 }
