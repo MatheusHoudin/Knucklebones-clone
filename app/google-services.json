@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "819648366739",
+    "firebase_url": "https://knucklebones-7782b-default-rtdb.firebaseio.com",
+    "project_id": "knucklebones-7782b",
+    "storage_bucket": "knucklebones-7782b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819648366739:android:ce2009e7c39107c100a566",
+        "android_client_info": {
+          "package_name": "com.houdin.knucklebonesclone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWhs4vSgTFgdrIOP2dLF5Nf_HaS3dinq8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

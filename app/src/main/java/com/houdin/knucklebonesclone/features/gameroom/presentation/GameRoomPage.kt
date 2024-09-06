@@ -1,5 +1,7 @@
-package com.houdin.knucklebonesclone.features.gameroon.presentation
+package com.houdin.knucklebonesclone.features.gameroom.presentation
 
+import android.content.ClipData
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -8,11 +10,11 @@ import androidx.compose.animation.core.animateValue
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import android.content.Context.CLIPBOARD_SERVICE
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,23 +24,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import qrgenerator.QRCodeImage
 
 @Composable
-fun GameRoom() {
+fun GameRoom(
+    viewModel: GameRoomViewModel = koinViewModel()
+) {
+    val state = viewModel.gameRoomState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +65,7 @@ fun GameRoom() {
         )
         Spacer(modifier = Modifier.height(36.dp))
         QRCodeImage(
-            url = "https://www.google.com/",
+            url = state.value.roomLink,
             contentScale = ContentScale.Fit,
             contentDescription = "QR Code",
             modifier = Modifier
@@ -70,6 +78,7 @@ fun GameRoom() {
 
         var copyLinkText by remember { mutableStateOf(COPY_LINK) }
         val context = LocalContext.current
+        val clipboardManager = LocalClipboardManager.current
         Text(
             text = copyLinkText,
             style = MaterialTheme.typography.titleMedium,
@@ -77,7 +86,8 @@ fun GameRoom() {
                 .background(MaterialTheme.colorScheme.tertiary)
                 .clickable {
                     copyLinkText = COPIED_LINK
-                    Toast.makeText(context, "Text copied and ready to be used!", Toast.LENGTH_SHORT).show()
+                    clipboardManager.setText(AnnotatedString(state.value.roomLink))
+                    Toast.makeText(context, "Link to the game was copied!", Toast.LENGTH_SHORT).show()
                 }
                 .padding(10.dp)
         )
