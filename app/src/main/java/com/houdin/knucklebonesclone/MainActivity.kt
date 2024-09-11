@@ -1,5 +1,6 @@
 package com.houdin.knucklebonesclone
 
+import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.provider.Settings.Secure
@@ -10,14 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.google.firebase.database.FirebaseDatabase
 import com.houdin.knucklebonesclone.features.gameroom.presentation.GameRoom
 import com.houdin.knucklebonesclone.features.home.presentation.HomePage
 import com.houdin.knucklebonesclone.shared.preferences.AppPreferences
 import com.houdin.knucklebonesclone.shared.theme.KnucklebonesCloneTheme
+import com.houdin.knucklebonesclone.shared.utils.ROOM_ID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +47,21 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(GAME_ROOM_ROUTE)
                             }
                         }
-                        composable(GAME_ROOM_ROUTE) { GameRoom() }
+                        composable(
+                            GAME_ROOM_ROUTE,
+                            deepLinks = listOf(navDeepLink {
+                                uriPattern = "https://knucklebonesclone.houdin.com/room/{roomId}"
+                                action = Intent.ACTION_VIEW
+                            }),
+                            arguments = listOf(
+                                navArgument(ROOM_ID) {
+                                    type = NavType.StringType
+                                    defaultValue = ""
+                                }
+                            )
+                        ) { backStackEntry ->
+                            GameRoom()
+                        }
                     }
                 }
             }

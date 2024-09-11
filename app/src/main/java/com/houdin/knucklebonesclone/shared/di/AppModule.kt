@@ -9,7 +9,7 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
-    viewModel { GameRoomViewModel(gameRoomRepository = get()) }
+    viewModel { GameRoomViewModel(gameRoomRepository = get(), savedStateHandle = get()) }
     single<GameRoomDatasource> { GameRoomDatasourceImpl() }
     single<GameRoomRepository> { GameRoomRepositoryImpl(get()) }
 }
