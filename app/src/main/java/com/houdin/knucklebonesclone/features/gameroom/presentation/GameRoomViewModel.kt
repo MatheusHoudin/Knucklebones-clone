@@ -1,14 +1,27 @@
 package com.houdin.knucklebonesclone.features.gameroom.presentation
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.houdin.knucklebonesclone.features.gameroom.domain.GameRoomRepository
+import com.houdin.knucklebonesclone.features.gameroom.model.GameRoom
 import com.houdin.knucklebonesclone.features.gameroom.presentation.model.GameRoomState
 import com.houdin.knucklebonesclone.shared.utils.ROOM_ID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class GameRoomViewModel(
@@ -16,25 +29,65 @@ class GameRoomViewModel(
     private val gameRoomRepository: GameRoomRepository
 ) : ViewModel() {
 
-    private val _gameRoomState: MutableStateFlow<GameRoomState> = MutableStateFlow(GameRoomState(""))
+    private val _gameRoomState: MutableStateFlow<GameRoomState> =
+        MutableStateFlow(GameRoomState(""))
     val gameRoomState: StateFlow<GameRoomState> = _gameRoomState
+
+    private val firebaseInstance = FirebaseDatabase.getInstance()
 
     init {
         val roomId = savedStateHandle.get<String>(ROOM_ID)
-        Log.i("CHARLAO", roomId.orEmpty())
         if (roomId?.isNotEmpty() == true) {
             viewModelScope.launch {
                 gameRoomRepository.joinGameRoom(roomId)
+                observeChanged(roomId).asLiveData(viewModelScope.coroutineContext + Dispatchers.Default).observeForever { it ->
+                    Log.d("GameRoomViewModel", "observeChanged: $it")
+                }
             }
         } else {
-            createGameRoom()
+            viewModelScope.launch {
+                createGameRoom()
+            }
         }
     }
 
     private fun createGameRoom() {
+        val gameRoomState = gameRoomRepository.createGameRoom()
         _gameRoomState.value = _gameRoomState.value.copy(
-            roomLink = gameRoomRepository.createGameRoom()
+            roomLink = gameRoomState.roomLink,
+            roomId = gameRoomState.roomId
         )
+        observeChanged(gameRoomState.roomId).asLiveData(viewModelScope.coroutineContext + Dispatchers.Default).observeForever {
+            Log.d("GameRoomViewModel", "observeChanged: $it")
+        }
     }
 
+    private fun observeChanged(roomId: String): Flow<GameRoom> =
+        firebaseInstance
+            .getReference("room")
+            .child(roomId)
+            .observeValue()
+            .map {
+                val map = it?.value as HashMap<*, *>
+                GameRoom(
+                    player1 = map["player1"] as String,
+                    player2 = map["player2"] as String,
+                    gameStarted = map["gameStarted"] as Boolean
+                )
+            }
+
+    fun DatabaseReference.observeValue(): Flow<DataSnapshot?> =
+        callbackFlow {
+            val listener = object : ValueEventListener {
+                override fun onCancelled(error: DatabaseError) {
+                    close(error.toException())
+                }
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    trySend(snapshot).isSuccess
+                }
+            }
+            addValueEventListener(listener)
+            awaitClose { removeEventListener(listener) }
+        }
 }
