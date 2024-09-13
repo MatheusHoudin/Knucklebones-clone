@@ -1,5 +1,6 @@
 package com.houdin.knucklebonesclone.features.gameroom.presentation
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,6 +21,7 @@ class GameRoomViewModel(
 
     init {
         val roomId = savedStateHandle.get<String>(ROOM_ID)
+        Log.i("CHARLAO", roomId.orEmpty())
         if (roomId?.isNotEmpty() == true) {
             viewModelScope.launch {
                 gameRoomRepository.joinGameRoom(roomId)
