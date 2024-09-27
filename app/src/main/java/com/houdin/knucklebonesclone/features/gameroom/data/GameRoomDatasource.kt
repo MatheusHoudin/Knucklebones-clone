@@ -56,6 +56,7 @@ class GameRoomDatasourceImpl : GameRoomDatasource {
         if (players.contains(AppPreferences.deviceId)
             && (gameRoom.player1.isNotEmpty() && gameRoom.player2.isNotEmpty())
             && (gameRoom.player1 != gameRoom.player2)) {
+            Log.d("CHARLAO", "startGame: $gameRoom")
             firebaseInstance.getReference(FIREBASE_ROOM_KEY).child(roomId).child("gameStarted")
                 .setValue(true)
         }

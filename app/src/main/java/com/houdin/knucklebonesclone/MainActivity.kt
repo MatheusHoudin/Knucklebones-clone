@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.google.firebase.database.FirebaseDatabase
+import com.houdin.knucklebonesclone.features.game.presentation.GamePage
 import com.houdin.knucklebonesclone.features.gameroom.presentation.GameRoom
 import com.houdin.knucklebonesclone.features.home.presentation.HomePage
 import com.houdin.knucklebonesclone.shared.preferences.AppPreferences
@@ -60,7 +61,12 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) { backStackEntry ->
-                            GameRoom()
+                            GameRoom {
+                                navController.navigate(GAME_ROUTE)
+                            }
+                        }
+                        composable(GAME_ROUTE) {
+                            GamePage()
                         }
                     }
                 }
@@ -71,5 +77,6 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val HOME_ROUTE = "home"
         const val GAME_ROOM_ROUTE = "gameroom"
+        const val GAME_ROUTE = "game"
     }
 }

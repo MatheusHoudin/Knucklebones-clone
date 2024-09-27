@@ -1,7 +1,6 @@
 package com.houdin.knucklebonesclone.features.gameroom.presentation
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -20,6 +19,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -33,6 +33,9 @@ class GameRoomViewModel(
         MutableStateFlow(GameRoomState(""))
     val gameRoomState: StateFlow<GameRoomState> = _gameRoomState
 
+    private var _navigateToGamePage = MutableStateFlow(false)
+    var navigateToGamePage : StateFlow<Boolean> = _navigateToGamePage.asStateFlow()
+
     private val firebaseInstance = FirebaseDatabase.getInstance()
 
     init {
@@ -40,9 +43,7 @@ class GameRoomViewModel(
         if (roomId?.isNotEmpty() == true) {
             viewModelScope.launch {
                 gameRoomRepository.joinGameRoom(roomId)
-                observeChanged(roomId).asLiveData(viewModelScope.coroutineContext + Dispatchers.Default).observeForever { it ->
-                    Log.d("GameRoomViewModel", "observeChanged: $it")
-                }
+                observeGameChanged(roomId)
             }
         } else {
             viewModelScope.launch {
@@ -57,9 +58,7 @@ class GameRoomViewModel(
             roomLink = gameRoomState.roomLink,
             roomId = gameRoomState.roomId
         )
-        observeChanged(gameRoomState.roomId).asLiveData(viewModelScope.coroutineContext + Dispatchers.Default).observeForever {
-            Log.d("GameRoomViewModel", "observeChanged: $it")
-        }
+        observeGameChanged(gameRoomState.roomId)
     }
 
     private fun observeChanged(roomId: String): Flow<GameRoom> =
@@ -76,7 +75,16 @@ class GameRoomViewModel(
                 )
             }
 
-    fun DatabaseReference.observeValue(): Flow<DataSnapshot?> =
+    private fun observeGameChanged(roomId: String) {
+        observeChanged(roomId).asLiveData(viewModelScope.coroutineContext + Dispatchers.Default).observeForever {
+            Log.d("CHARLAO", "observeChanged: $it")
+            if (it.gameStarted) {
+                _navigateToGamePage.value = true
+            }
+        }
+    }
+
+    private fun DatabaseReference.observeValue(): Flow<DataSnapshot?> =
         callbackFlow {
             val listener = object : ValueEventListener {
                 override fun onCancelled(error: DatabaseError) {

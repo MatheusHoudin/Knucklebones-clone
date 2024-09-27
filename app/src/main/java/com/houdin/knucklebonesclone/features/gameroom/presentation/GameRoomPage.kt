@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,9 +44,15 @@ import qrgenerator.QRCodeImage
 
 @Composable
 fun GameRoom(
-    viewModel: GameRoomViewModel = koinViewModel()
+    viewModel: GameRoomViewModel = koinViewModel(),
+    startGame: () -> Unit
 ) {
     val state = viewModel.gameRoomState.collectAsState()
+    val navigateToGamePage by viewModel.navigateToGamePage.collectAsState()
+
+    LaunchedEffect(navigateToGamePage) {
+        if (navigateToGamePage) startGame()
+    }
 
     Column(
         modifier = Modifier
@@ -87,7 +94,9 @@ fun GameRoom(
                 .clickable {
                     copyLinkText = COPIED_LINK
                     clipboardManager.setText(AnnotatedString(state.value.roomLink))
-                    Toast.makeText(context, "Link to the game was copied!", Toast.LENGTH_SHORT).show()
+                    Toast
+                        .makeText(context, "Link to the game was copied!", Toast.LENGTH_SHORT)
+                        .show()
                 }
                 .padding(10.dp)
         )
